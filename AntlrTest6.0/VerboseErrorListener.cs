@@ -1,10 +1,7 @@
 using Antlr4.Runtime;
 using Antlr4.Runtime.Misc;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 
-namespace AntlrTest
+namespace AntlrTest6._0
 {
     public class VerboseListener : BaseErrorListener
     {

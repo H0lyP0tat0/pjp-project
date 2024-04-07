@@ -2,21 +2,21 @@ grammar MFL;
 
 prog: statement* EOF;
 
-expr: '-' expr
-    | '!' expr 
-    | expr ('*'|'/'|'%') expr
-    | expr ('+'|'-'|'.') expr
-    | expr ('<'|'>') expr
-    | expr ('=='|'!=') expr
-    | expr '&&' expr
-    | expr '||' expr
-    | ID '=' expr
-    | ID
-    | INT                   
-    | FLOAT                 
-    | BOOL                  
-    | STRING                
-    | '(' expr ')'          
+expr: '-' expr                      # unMinus
+    | '!' expr                      # not
+    | expr op=('*'|'/'|'%') expr    # mulDivMod   
+    | expr op=('+'|'-'|'.') expr    # addSubCon
+    | expr op=('<'|'>') expr        # lessGreater
+    | expr op=('=='|'!=') expr      # equalNotEqual
+    | expr '&&' expr                # and
+    | expr '||' expr                # or
+    | ID '=' expr                   # assign
+    | ID                            # id
+    | INT                           # int
+    | FLOAT                         # float
+    | BOOL                          # bool
+    | STRING                        # string
+    | '(' expr ')'                  # brackets
     ;
 
 INT : [1-9][0-9]* | [0] ;
@@ -32,14 +32,14 @@ type : 'int' | 'string' | 'float' | 'bool' ;
 
 // statements
 statement
-    : type ID (',' ID)* ';'
-    | expr ';'
-    | 'read' ID (',' ID)* ';'
-    | 'write' expr (',' expr)* ';'
-    | '{' statement+ '}'
-    | 'if' '(' expr ')' statement ('else' statement)?
-    | 'while' '(' expr ')' statement
-    | ';'
+    : type ID (',' ID)* ';'                             # declaration
+    | expr ';'                                          # expression
+    | 'read' ID (',' ID)* ';'                           # read
+    | 'write' expr (',' expr)* ';'                      # write
+    | '{' statement+ '}'                                # block
+    | 'if' '(' expr ')' statement ('else' statement)?   # if
+    | 'while' '(' expr ')' statement                    # while
+    | ';'                                               # empty
     ;
     
 fragment CHARSEQUENCE
