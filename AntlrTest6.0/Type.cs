@@ -7,4 +7,5 @@ public enum Type
     BOOL,
     STRING,
     ERROR,
+    NULL,
 }

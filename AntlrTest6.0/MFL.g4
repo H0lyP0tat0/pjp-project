@@ -15,7 +15,7 @@ expr: '-' expr                      # unMinus
     | INT                           # int
     | FLOAT                         # float
     | BOOL                          # bool
-    | STRING                        # string
+    | STRING                        # str
     | '(' expr ')'                  # brackets
     ;
 

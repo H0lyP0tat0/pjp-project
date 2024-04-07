@@ -22,14 +22,14 @@ namespace AntlrTest6._0
 
             IParseTree tree = parser.prog();
 
-            if (parser.NumberOfSyntaxErrors == 0)
-            {
-                Console.WriteLine(tree.ToStringTree(parser));
-                // ParseTreeWalker walker = new ParseTreeWalker();
-                // walker.Walk(new EvalListener(), tree);
+            if (parser.NumberOfSyntaxErrors != 0) return;
+            // Console.WriteLine(tree.ToStringTree(parser));
+            // ParseTreeWalker walker = new ParseTreeWalker();
+            // walker.Walk(new EvalListener(), tree);
 
-                // new EvalVisitor().Visit(tree);
-            }
+            new TypeCheckVisitor().Visit(tree);
+            ErrorController.PrintErrors();
+            SymbolTable.PrintTable();
         }
     }
 }
