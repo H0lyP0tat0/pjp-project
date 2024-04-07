@@ -45,6 +45,6 @@ statement
 fragment CHARSEQUENCE
     : ~["\\\r\n]
     | '\\' ['"?abfnrtv\\]
-    | '\\\n'   // Added line
-    | '\\\r\n' // Added line
+    | '\\\n'
+    | '\\\r\n'
     ;
