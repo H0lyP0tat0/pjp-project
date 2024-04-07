@@ -10,8 +10,8 @@ public static class ErrorController
     {
         error = error switch
         {
-            "" => "is not a valid operation",
-            "type" => "is not a valid type",
+            "" => "invalid operation",
+            "type" => "invalid type",
             "bool" => "is not a boolean expression",
             "num" => "is not a number",
             "assign" => "invalid assignment",
@@ -23,9 +23,12 @@ public static class ErrorController
 
     public static void PrintErrors()
     {
+        Console.WriteLine("\n" + "\u001B[31m" + "### Error Controller ###");
+        if (errors.Count == 0) Console.WriteLine("No errors found.");
+        
         foreach (var error in errors)
         {
-            Console.WriteLine(error);
+            Console.WriteLine("\u001B[31m" + error);
         }
     }
 }
