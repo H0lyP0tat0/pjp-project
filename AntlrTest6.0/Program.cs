@@ -10,7 +10,7 @@ namespace AntlrTest6._0
         public static void Main(string[] args)
         {
             Thread.CurrentThread.CurrentCulture = new CultureInfo("en-US");
-            var fileName = "input.txt";
+            var fileName = "input1.txt";
             Console.WriteLine("Parsing: " + fileName);
             var inputFile = new StreamReader(fileName);
             AntlrInputStream input = new AntlrInputStream(inputFile);
@@ -30,6 +30,7 @@ namespace AntlrTest6._0
             new TypeCheckVisitor().Visit(tree);
             ErrorController.PrintErrors();
             SymbolTable.PrintTable();
+            VirtualMachine.PrintInstructions();
         }
     }
 }

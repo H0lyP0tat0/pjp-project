@@ -18,6 +18,7 @@ public class TypeCheckVisitor : MFLBaseVisitor<Type>
 
     public override Type VisitBool(MFLParser.BoolContext context)
     {
+        VirtualMachine.Push(Type.BOOL, context.BOOL().GetText());
         return Type.BOOL;
     }
 
@@ -56,6 +57,12 @@ public class TypeCheckVisitor : MFLBaseVisitor<Type>
         Type type = Visit(context.type());
         if (type == Type.ERROR) return Type.ERROR;
 
+        foreach (var id in context.ID())
+        {
+            VirtualMachine.Push(type);
+            VirtualMachine.SaveLoad("save", id.GetText());
+        }
+        
         return context.ID().Any(element => SymbolTable.Add(element.Symbol, type) == Type.ERROR)
             ? Type.ERROR
             : Type.NULL;
@@ -65,7 +72,11 @@ public class TypeCheckVisitor : MFLBaseVisitor<Type>
     {
         Type type = Visit(context.expr());
 
-        if (type == Type.INT || type == Type.FLOAT) return type;
+        if (type == Type.INT || type == Type.FLOAT)
+        {
+            VirtualMachine.code.Add("uminus");
+            return type;
+        }
 
         ErrorController.AddError(context, "num");
         return Type.ERROR;
@@ -73,7 +84,11 @@ public class TypeCheckVisitor : MFLBaseVisitor<Type>
 
     public override Type VisitNot(MFLParser.NotContext context)
     {
-        if (Visit(context.expr()) == Type.BOOL) return Type.BOOL;
+        if (Visit(context.expr()) == Type.BOOL)
+        {
+            VirtualMachine.AndOrNot("!");
+            return Type.BOOL;
+        }
 
         ErrorController.AddError(context, "bool");
         return Type.ERROR;
@@ -84,28 +99,50 @@ public class TypeCheckVisitor : MFLBaseVisitor<Type>
         Type left = Visit(context.expr(0));
         Type right = Visit(context.expr(1));
         string op = context.op.Text;
-
+        
         if (op == "%")
         {
-            if (left == Type.INT && right == Type.INT) return Type.INT;
+            if (left == Type.INT && right == Type.INT)
+            {
+                VirtualMachine.Expression(op);
+                return Type.INT;
+            }
 
             ErrorController.AddError(context);
             return Type.ERROR;
         }
-        else
+
+        if (left == Type.INT)
         {
-            if (left == Type.INT)
+            if (right == Type.INT)
             {
-                if (right == Type.INT) return Type.INT;
-                if (right == Type.FLOAT) return Type.FLOAT;
+                VirtualMachine.Expression(op);
+                return Type.INT;
             }
-            else if (left == Type.FLOAT)
+            if (right == Type.FLOAT)
             {
-                if (right == Type.INT) return Type.FLOAT;
-                if (right == Type.FLOAT) return Type.FLOAT;
+                VirtualMachine.Itof();
+                VirtualMachine.Expression(op);
+                return Type.FLOAT;
+            }
+        }
+        else if (left == Type.FLOAT)
+        {
+            if (right == Type.INT)
+            {
+                VirtualMachine.Itof();
+                VirtualMachine.Expression(op);
+                return Type.FLOAT;
+            }
+
+            if (right == Type.FLOAT)
+            {
+                VirtualMachine.Expression(op);
+                return Type.FLOAT;
             }
         }
 
+        VirtualMachine.code.RemoveAt(VirtualMachine.code.Count - 1);
         ErrorController.AddError(context);
         return Type.ERROR;
     }
@@ -118,25 +155,46 @@ public class TypeCheckVisitor : MFLBaseVisitor<Type>
 
         if (op == ".")
         {
-            if (left == Type.STRING && right == Type.STRING) return Type.STRING;
+            if (left == Type.STRING && right == Type.STRING)
+            {
+                VirtualMachine.Expression(op);
+                return Type.STRING;
+            }
 
             ErrorController.AddError(context);
             return Type.ERROR;
         }
-        else
+
+        if (left == Type.INT)
         {
-            if (left == Type.INT)
+            if (right == Type.INT)
             {
-                if (right == Type.INT) return Type.INT;
-                if (right == Type.FLOAT) return Type.FLOAT;
+                VirtualMachine.Expression(op);
+                return Type.INT;
             }
-            else if (left == Type.FLOAT)
+            if (right == Type.FLOAT)
             {
-                if (right == Type.INT) return Type.FLOAT;
-                if (right == Type.FLOAT) return Type.FLOAT;
+                VirtualMachine.Itof();
+                VirtualMachine.Expression(op);
+                return Type.FLOAT;
             }
         }
+        else if (left == Type.FLOAT)
+        {
+            if (right == Type.INT)
+            {
+                VirtualMachine.Itof();
+                VirtualMachine.Expression(op);
+                return Type.FLOAT;
+            }
 
+            if (right == Type.FLOAT)
+            {
+                VirtualMachine.Expression(op);
+                return Type.FLOAT;
+            }
+        }
+        
         ErrorController.AddError(context);
         return Type.ERROR;
     }
@@ -145,16 +203,35 @@ public class TypeCheckVisitor : MFLBaseVisitor<Type>
     {
         Type left = Visit(context.expr(0));
         Type right = Visit(context.expr(1));
-
+        
         if (left == Type.INT)
         {
-            if (right == Type.INT) return Type.BOOL;
-            if (right == Type.FLOAT) return Type.BOOL;
+            if (right == Type.INT)
+            {
+                VirtualMachine.LessGreater(context.op.Text);
+                return Type.BOOL;
+            }
+            if (right == Type.FLOAT)
+            {
+                VirtualMachine.Itof();
+                VirtualMachine.LessGreater(context.op.Text);
+                return Type.BOOL;
+            }
         }
         else if (left == Type.FLOAT)
         {
-            if (right == Type.INT) return Type.BOOL;
-            if (right == Type.FLOAT) return Type.BOOL;
+            if (right == Type.INT)
+            {
+                VirtualMachine.Itof();
+                VirtualMachine.LessGreater(context.op.Text);
+                return Type.BOOL;
+            }
+
+            if (right == Type.FLOAT)
+            {
+                VirtualMachine.LessGreater(context.op.Text);
+                return Type.BOOL;
+            }
         }
 
         ErrorController.AddError(context);
@@ -172,21 +249,40 @@ public class TypeCheckVisitor : MFLBaseVisitor<Type>
             return Type.ERROR;
         }
 
-        if (left == right) return Type.BOOL;
+        if (left == right)
+        {
+            VirtualMachine.Equal(context.op.Text);
+            return Type.BOOL;
+        }
 
-        if (left == Type.INT && right == Type.FLOAT) return Type.BOOL;
-        if (left == Type.FLOAT && right == Type.INT) return Type.BOOL;
+        if (left == Type.INT && right == Type.FLOAT)
+        {
+            VirtualMachine.Itof();
+            VirtualMachine.Equal(context.op.Text);
+            return Type.BOOL;
+        }
+
+        if (left == Type.FLOAT && right == Type.INT)
+        {
+            VirtualMachine.Itof();
+            VirtualMachine.Equal(context.op.Text);
+            return Type.BOOL;
+        }
 
         ErrorController.AddError(context);
         return Type.ERROR;
     }
-
+    
     public override Type VisitAnd(MFLParser.AndContext context)
     {
         Type left = Visit(context.expr(0));
         Type right = Visit(context.expr(1));
 
-        if (left == Type.BOOL && right == Type.BOOL) return Type.BOOL;
+        if (left == Type.BOOL && right == Type.BOOL)
+        {
+            VirtualMachine.AndOrNot("&&");
+            return Type.BOOL;
+        }
 
         ErrorController.AddError(context, "bool");
         return Type.ERROR;
@@ -197,7 +293,11 @@ public class TypeCheckVisitor : MFLBaseVisitor<Type>
         Type left = Visit(context.expr(0));
         Type right = Visit(context.expr(1));
 
-        if (left == Type.BOOL && right == Type.BOOL) return Type.BOOL;
+        if (left == Type.BOOL && right == Type.BOOL)
+        {
+            VirtualMachine.AndOrNot("||");
+            return Type.BOOL;
+        }
 
         ErrorController.AddError(context, "bool");
         return Type.ERROR;
@@ -207,11 +307,25 @@ public class TypeCheckVisitor : MFLBaseVisitor<Type>
     {
         Type left = SymbolTable.Get(context.ID().Symbol);
         Type right = Visit(context.expr());
-
+        
         if (left != Type.ERROR && right != Type.ERROR)
         {
-            if (left == Type.FLOAT && right == Type.INT) return left;
-            if (left == right) return left;
+            if (left == Type.FLOAT && right == Type.INT)
+            {
+                VirtualMachine.Itof();
+                VirtualMachine.SaveLoad("save", context.ID().GetText());
+                VirtualMachine.SaveLoad("load", context.ID().GetText());
+
+                return left;
+            }
+
+            if (left == right)
+            {
+                VirtualMachine.SaveLoad("save", context.ID().GetText());
+                VirtualMachine.SaveLoad("load", context.ID().GetText());
+                
+                return left;
+            }
         }
         
         ErrorController.AddError(context, "assign");
@@ -223,26 +337,68 @@ public class TypeCheckVisitor : MFLBaseVisitor<Type>
         Type type = SymbolTable.Get(context.ID().Symbol);
         if (type == Type.ERROR) ErrorController.AddError(context);
         
+        if (type != Type.ERROR)
+        {
+            VirtualMachine.SaveLoad("load", context.ID().GetText());
+        }
+        
         return type;
     }
 
     public override Type VisitInt(MFLParser.IntContext context)
     {
+        VirtualMachine.Push(Type.INT, context.INT().GetText());
         return Type.INT;
     }
 
     public override Type VisitFloat(MFLParser.FloatContext context)
     {
+        VirtualMachine.Push(Type.FLOAT, context.FLOAT().GetText());
         return Type.FLOAT;
     }
 
     public override Type VisitStr(MFLParser.StrContext context)
     {
+        VirtualMachine.Push(Type.STRING, context.STRING().GetText());
         return Type.STRING;
     }
 
     public override Type VisitBrackets(MFLParser.BracketsContext context)
     {
         return Visit(context.expr());
+    }
+
+    public override Type VisitWrite(MFLParser.WriteContext context)
+    {
+        foreach (var expr in context.expr())
+        {
+            Visit(expr);
+        }
+        
+        VirtualMachine.Print(context.expr().Length);
+        return Type.NULL;
+    }
+
+    public override Type VisitRead(MFLParser.ReadContext context)
+    {
+        foreach (var id in context.ID())
+        {
+            var type = SymbolTable.Get(id.Symbol);
+            string typeText = type switch {
+                Type.INT => "I",
+                Type.FLOAT => "F",
+                Type.BOOL => "B",
+                Type.STRING => "S",
+                _ => "E"
+            };
+            VirtualMachine.code.Add($"read {typeText}");
+            
+            if (type != Type.ERROR)
+            {
+                VirtualMachine.SaveLoad("save", id.GetText());
+            }
+        }
+        
+        return Type.NULL;
     }
 }
