@@ -1,4 +1,5 @@
 namespace AntlrTest6._0;
+using NCalc;
 
 public class TypeCheckVisitor : MFLBaseVisitor<Type>
 {
@@ -24,31 +25,50 @@ public class TypeCheckVisitor : MFLBaseVisitor<Type>
 
     public override Type VisitWhile(MFLParser.WhileContext context)
     {
+        int l1 = VirtualMachine.NextLabel();
+        VirtualMachine.Label();
         if (Visit(context.expr()) != Type.BOOL)
         {
             ErrorController.AddError(context, "bool");
             return Type.ERROR;
         }
 
+        int l2 = VirtualMachine.NextLabel();
+        VirtualMachine.Jump(l2, "f");
         Visit(context.statement());
+        
+        VirtualMachine.Jump(l1);
+        VirtualMachine.Label();
         return Type.NULL;
     }
 
     public override Type VisitIf(MFLParser.IfContext context)
     {
+        VirtualMachine.Label();
         if (Visit(context.expr()) != Type.BOOL)
         {
             ErrorController.AddError(context, "bool");
             return Type.ERROR;
         }
-
+        
+        // bool result = EvaluateBool(context.expr().GetText());
+        int l1 = VirtualMachine.NextLabel();
+        VirtualMachine.Jump(l1, "f");
         Visit(context.statement()[0]);
 
+        
+        int l2 = VirtualMachine.NextLabel();
+        VirtualMachine.Jump(l2 + 1);
+        VirtualMachine.Label();
         if (context.statement().Length > 1)
         {
             Visit(context.statement()[1]);
         }
-
+        else
+        {
+            VirtualMachine.Label();
+        }
+        
         return Type.NULL;
     }
 
@@ -315,7 +335,8 @@ public class TypeCheckVisitor : MFLBaseVisitor<Type>
                 VirtualMachine.Itof();
                 VirtualMachine.SaveLoad("save", context.ID().GetText());
                 VirtualMachine.SaveLoad("load", context.ID().GetText());
-
+                VirtualMachine.Pop();
+                
                 return left;
             }
 
@@ -323,7 +344,8 @@ public class TypeCheckVisitor : MFLBaseVisitor<Type>
             {
                 VirtualMachine.SaveLoad("save", context.ID().GetText());
                 VirtualMachine.SaveLoad("load", context.ID().GetText());
-                
+                VirtualMachine.Pop();
+
                 return left;
             }
         }
@@ -401,4 +423,10 @@ public class TypeCheckVisitor : MFLBaseVisitor<Type>
         
         return Type.NULL;
     }
+    
+    private bool EvaluateBool(string expression)
+    {
+        Expression e = new Expression(expression);
+        return (bool)e.Evaluate();
+    } 
 }

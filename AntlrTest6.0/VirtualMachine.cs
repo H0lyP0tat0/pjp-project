@@ -4,7 +4,8 @@ public class VirtualMachine
 {
     public static Stack<string> stack = new Stack<string>();
     public static List<string> code = new List<string>();
-    public static int labelCount = 0; 
+    private static int labelCount = -1;
+    private static bool firstStatement = true;
 
     public static void PrintInstructions()
     {
@@ -117,5 +118,30 @@ public class VirtualMachine
     public static void Print(int length)
     {
         code.Add($"print {length}");
+    }
+
+    public static void Label()
+    {
+        if (labelCount != -1)
+            code.Add($"label {labelCount}");
+        labelCount++;
+    }
+
+    public static int NextLabel()
+    {
+        return labelCount;
+    }
+
+    public static void Jump(int label, string type = "")
+    {
+        switch (type)
+        {
+            case "":
+                code.Add($"jmp {label}");
+                break;
+            case "f":
+                code.Add($"fjmp {label}");
+                break;
+        }
     }
 }

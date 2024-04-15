@@ -21,6 +21,11 @@ public static class SymbolTable
         return table.GetValueOrDefault(name, Type.ERROR);
     }
 
+    public static Type Get(string name)
+    {
+        return table.GetValueOrDefault(name, Type.ERROR);
+    }
+
     public static void PrintTable()
     {
         Console.WriteLine("\n" + "\u001B[36m" + "### Symbol Table ###");
