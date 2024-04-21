@@ -10,7 +10,7 @@ namespace AntlrTest6._0
         public static void Main(string[] args)
         {
             Thread.CurrentThread.CurrentCulture = new CultureInfo("en-US");
-            var fileName = "input3.txt";
+            var fileName = "input1.txt";
             Console.WriteLine("Parsing: " + fileName);
             var inputFile = new StreamReader(fileName);
             AntlrInputStream input = new AntlrInputStream(inputFile);
@@ -27,10 +27,11 @@ namespace AntlrTest6._0
             // ParseTreeWalker walker = new ParseTreeWalker();
             // walker.Walk(new EvalListener(), tree);
 
-            new TypeCheckVisitor().Visit(tree);
-            ErrorController.PrintErrors();
-            SymbolTable.PrintTable();
-            VirtualMachine.PrintInstructions();
+            // new TypeCheckVisitor().Visit(tree);
+            // ErrorController.PrintErrors();
+            // SymbolTable.PrintTable();
+            // VirtualMachine.PrintInstructions();
+            VirtualMachine.Run("ins3.txt");
         }
     }
 }

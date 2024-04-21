@@ -136,13 +136,16 @@ public class TypeCheckVisitor : MFLBaseVisitor<Type>
         {
             if (right == Type.INT)
             {
-                VirtualMachine.Expression(op);
+                VirtualMachine.Expression(op, "I");
                 return Type.INT;
             }
             if (right == Type.FLOAT)
             {
+                string lastInstruction = VirtualMachine.code[^1]; 
+                VirtualMachine.code.RemoveAt(VirtualMachine.code.Count - 1);
                 VirtualMachine.Itof();
-                VirtualMachine.Expression(op);
+                VirtualMachine.code.Add(lastInstruction);
+                VirtualMachine.Expression(op, "F");
                 return Type.FLOAT;
             }
         }
@@ -151,13 +154,13 @@ public class TypeCheckVisitor : MFLBaseVisitor<Type>
             if (right == Type.INT)
             {
                 VirtualMachine.Itof();
-                VirtualMachine.Expression(op);
+                VirtualMachine.Expression(op, "F");
                 return Type.FLOAT;
             }
 
             if (right == Type.FLOAT)
             {
-                VirtualMachine.Expression(op);
+                VirtualMachine.Expression(op, "F");
                 return Type.FLOAT;
             }
         }
@@ -189,13 +192,16 @@ public class TypeCheckVisitor : MFLBaseVisitor<Type>
         {
             if (right == Type.INT)
             {
-                VirtualMachine.Expression(op);
+                VirtualMachine.Expression(op, "I");
                 return Type.INT;
             }
             if (right == Type.FLOAT)
             {
+                string lastInstruction = VirtualMachine.code[^1]; 
+                VirtualMachine.code.RemoveAt(VirtualMachine.code.Count - 1);
                 VirtualMachine.Itof();
-                VirtualMachine.Expression(op);
+                VirtualMachine.code.Add(lastInstruction);
+                VirtualMachine.Expression(op, "F");
                 return Type.FLOAT;
             }
         }
@@ -204,13 +210,13 @@ public class TypeCheckVisitor : MFLBaseVisitor<Type>
             if (right == Type.INT)
             {
                 VirtualMachine.Itof();
-                VirtualMachine.Expression(op);
+                VirtualMachine.Expression(op, "F");
                 return Type.FLOAT;
             }
 
             if (right == Type.FLOAT)
             {
-                VirtualMachine.Expression(op);
+                VirtualMachine.Expression(op, "F");
                 return Type.FLOAT;
             }
         }
